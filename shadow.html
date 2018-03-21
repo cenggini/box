@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" type="image/x-icon" href="https://static.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+  <link rel="mask-icon" type="" href="https://static.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" />
+  <title>CodePen - Box Shadow Generator</title>
+  
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+
+  
+      <style>
+      @import url("https://fonts.googleapis.com/css?family=Roboto");
+body {
+  font-family: Roboto, sans-serif;
+  padding: 18px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8em;
+}
+
+h2 {
+  font-size: 1.6em;
+}
+
+.addbs {
+  padding: 8px 14px;
+  color: #333;
+  background-color: #FFF;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin: 12px auto;
+}
+
+.bsinput {
+  padding: 8px;
+  margin: 2px auto;
+  border: 1px solid #ddd;
+  -webkit-box-shadow: 2px 2px 4px 0 #eee;
+          box-shadow: 2px 2px 4px 0 #eee;
+  width: auto;
+  border-radius: 6px;
+}
+.bsinput .ig {
+  width: 62px;
+  display: inline-block;
+  line-height: 33px;
+}
+.bsinput input {
+  width: 62px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  line-height: 22px;
+}
+.bsinput .colorbtn {
+  display: inline-block;
+  width: 165px;
+  line-height: 22px;
+}
+.bsinput .colorbtn button {
+  border: none;
+  border-radius: 8px;
+  height: 28px;
+}
+.bsinput .remove {
+  width: 25px;
+  height: 25px;
+  border: none;
+  text-align: center;
+  border-radius: 50%;
+  background-color: #eee;
+  -webkit-box-shadow: 0.5px 0.5px 0px 0.5px #ccc;
+          box-shadow: 0.5px 0.5px 0px 0.5px #ccc;
+  float: right;
+  outline: none;
+  font-size: 22px;
+  color: #666;
+  line-height: 14px;
+}
+.bsinput .remove:hover {
+  color: #fff;
+  background-color: #e44;
+}
+
+.preview {
+  text-align: center;
+  padding: 48px 0;
+  line-height: 0;
+  display: block;
+  width: 200px;
+  height: 100px;
+  margin: 80px auto;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  color: #fff;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.output textarea {
+  width: 100%;
+  height: 100px;
+}
+
+.modal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.modal .colorpicker {
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+
+    </style>
+
+  
+  
+  
+  
+
+</head>
+
+<body translate="no" >
+
+  <div id="App">
+  <h1>Tool box-shadow Generaton</h1>
+  <preview :bs="bsinputs"></preview>
+  <button class="addbs" @click="addInput">ADD BOX SHADOW</button>
+  <bsinput
+           v-for="(bsi, i) in bsinputs"
+           :key="i"
+           :offset_x="bsi['offset_x']"
+           :offset_y="bsi['offset_y']"
+           :blur="bsi['blur']"
+           :spread="bsi['spread']"
+           :color="bsi['color']"
+           :inset="bsi['inset']"
+           @updatebs="updateInput(i, $event)"
+           @selectcolor="selectcolor(i)"
+           @remove="remove(i)"
+           >
+  </bsinput>
+  
+  <div class="modal" @click.self="color_i = -1" v-if="color_i >= 0">
+    <color-picker class="colorpicker" v-model="colors" @change-color="onChangeColor">OK</color-picker>
+  </div>
+</div>
+  
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js'></script>
+<script src='https://cdn.rawgit.com/xiaokaike/vue-color/aed02849/dist/vue-color.min.js'></script>
+
+  
+
+    <script >
+      var sketch = VueColor.Sketch;
+var chrome = VueColor.Chrome;
+var photoshop = VueColor.Photoshop;
+
+Vue.component("preview", {
+  template: "<div>\n  <div class=\"preview\" :style=\"style\"><h2>PREVIEW</h2></div>\n    <div class=\"output\">\n      <label>Include browser prefix: <input type='checkbox' v-model=\"prefix\"/></label><br/>\n      <textarea>{{astext}}</textarea>\n    </div>\n  <div>",
+  props: {
+    bs: { type: Array }
+  },
+  data: function data() {
+    return {
+      prefix: true
+    };
+  },
+  computed: {
+    style: function style() {
+      return {
+        "box-shadow": this.boxshadow
+      };
+    },
+    astext: function astext() {
+      if (!this.prefix) {
+        return "box-shadow: " + this.boxshadow + ";";
+      }
+      return "-moz-box-shadow:    " + this.boxshadow + ";\n-webkit-box-shadow: " + this.boxshadow + ";\nbox-shadow:         " + this.boxshadow + ";";
+    },
+    boxshadow: function boxshadow() {
+      var _this = this;
+
+      var val = [];
+      this.bs.forEach(function (obj) {
+        val.push(_this.createStyle(obj));
+      });
+      if (val.length === 0) {
+        return 'none';
+      }
+      val = val.join(', ');
+      return val;
+    }
+  },
+  methods: {
+    createStyle: function createStyle(obj) {
+      var rgba = "rgba(0, 0, 0, 1)";
+      if (obj.color) {
+        rgba = "rgba(" + obj.color.rgba.r + ", " + obj.color.rgba.g + ", " + obj.color.rgba.b + ", " + obj.color.rgba.a + ")";
+      }
+
+      return (obj.offset_x || 0) + "px " + (obj.offset_y || 0) + "px " + (obj.blur || 0) + "px " + (obj.spread || 0) + "px " + rgba + (obj.inset ? ' inset' : '');
+    }
+  }
+
+});
+
+Vue.component("bsinput", {
+  template: "<div class=\"bsinput\">\n    <div class=\"ig\">\n      <input @change=\"changed\" @keydown=\"changed\" v-model=\"offset_x\"> \n      <input type=\"range\" min=\"-100\" max=\"100\" @input=\"changed\" @keydown=\"changed\" v-model=\"offset_x\"> \n    </div>\n    <div class=\"ig\">\n      <input @change=\"changed\" @keydown=\"changed\" v-model=\"offset_y\"> \n      <input type=\"range\" min=\"-100\" max=\"100\" @input=\"changed\" @keydown=\"changed\" v-model=\"offset_y\"> \n    </div>\n    <div class=\"ig\">\n      <input @change=\"changed\" @keydown=\"changed\" v-model=\"blur\">\n      <input type=\"range\" min=\"-100\" max=\"100\" @input=\"changed\" @keydown=\"changed\" v-model=\"blur\">\n    </div>\n    <div class=\"ig\">\n      <input @change=\"changed\" @keydown=\"changed\" v-model=\"spread\">\n      <input type=\"range\" min=\"-100\" max=\"100\" @input=\"changed\" @keydown=\"changed\" v-model=\"spread\">\n    </div>\n    <div class=\"ig\" class=\"colorbtn\">\n       {{friendlyColor}}\n      <button  :style=\"colorButtonStyle\" @click=\"$emit('selectcolor')\">{{friendlyColor}}</button>\n    </div>\n    <div class=\"ig\">\n      <input @change=\"changed\" v-model=\"inset\" type=\"checkbox\">\n    </div>\n    <button class=\"remove\" @click=\"$emit('remove')\">&times;</button>\n  </div>",
+  props: {
+    "offset_x": { type: Number, default: 0 },
+    "offset_y": { type: Number, default: 0 },
+    "blur": { type: Number, default: 0 },
+    "spread": { type: Number, default: 0 },
+    "color": { type: Object, default: { rgba: { r: 0, g: 0, b: 0, a: 1 }, hex: "#000000" } },
+    "inset": { type: Boolean, default: false }
+  },
+  computed: {
+    friendlyColor: function friendlyColor() {
+
+      var rgba = "rgba(" + this.color.rgba.r + ", " + this.color.rgba.g + ", " + this.color.rgba.b + ", " + this.color.rgba.a + ")";
+      // return `${obj.offset_x||0}px ${obj.offset_y||0}px ${obj.blur||0}px ${obj.spread||0}px ${rgba}${obj.inset?' inset':''}`
+      return rgba;
+      // return `rgba(${this.color.rgb.r}, ${this.color.rgb.g}, ${this.color.rgb.b}, ${this.color.a})`
+    },
+    colorButtonStyle: function colorButtonStyle() {
+      return { "background-color": this.friendlyColor
+        // return {"background-color": this.friendlyColor}
+      };
+    }
+  },
+  methods: {
+    changed: function changed() {
+      var data = {
+        "offset_x": this.offset_x,
+        "offset_y": this.offset_y,
+        "blur": this.blur,
+        "spread": this.spread,
+        "color": this.color,
+        "inset": this.inset
+      };
+      this.$emit('updatebs', data);
+    }
+  }
+});
+
+new Vue({
+  el: "#App",
+  components: {
+    'color-picker': sketch
+  },
+  data: function data() {
+    return {
+      bsinputs: [],
+      color_i: -1,
+      colors: {}
+    };
+  },
+  methods: {
+    addInput: function addInput() {
+      this.bsinputs.unshift({
+        offset_x: Math.round(Math.random() * 10 - 5),
+        offset_y: Math.round(Math.random() * 10 - 5),
+        blur: 12,
+        spread: 0,
+        inset: false
+      });
+    },
+    updateInput: function updateInput(i, val) {
+      Vue.set(this.bsinputs, i, val);
+    },
+    selectcolor: function selectcolor(i) {
+      if (this.color_i === i) {
+        this.color_i = -1;
+        return;
+      }
+      // get color
+      var col = this.bsinputs[i].color || { hex: "#000000" };
+      console.log(col);
+      this.color_i = i;
+      this.colors = col;
+    },
+    remove: function remove(i) {
+      Vue.delete(this.bsinputs, i);
+    },
+    onChangeColor: function onChangeColor(col) {
+      if (this.color_i >= 0) {
+        var data = this.bsinputs[this.color_i];
+        data.color = col;
+        Vue.set(this.bsinputs, this.color_i, data);
+      }
+    }
+  },
+  mounted: function mounted() {
+    this.addInput();
+  }
+});
+    </script>
+
+
+
+  
+  
+
+</body>
+
+</html>
+ 
